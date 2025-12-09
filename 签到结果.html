@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>签到结果</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft Yahei", sans-serif;
+        }
+        body {
+            background-color: #f5f5f5; /* 与签到入口一致，统一背景色 */
+            padding: 15px;
+            color: #333;
+            padding-top: 80px; /* 与签到入口一致，增至80px容纳导航栏 */
+        }
+        /* 顶部导航栏（统一顺序：签到入口→签到类型→签到结果→关于会员） */
+        .top-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 12px 15px;
+            z-index: 999;
+            display: flex;
+            gap: 8px; /* 与签到入口一致，减小按钮间距 */
+            flex-wrap: nowrap; /* 禁止换行 */
+            overflow-x: auto; /* 移动端横向滚动 */
+            -webkit-overflow-scrolling: touch; /* 平滑滚动 */
+        }
+        /* 隐藏导航栏滚动条 */
+        .top-nav::-webkit-scrollbar {
+            display: none;
+        }
+        .nav-btn {
+            padding: 8px 12px; /* 与签到入口一致，减小按钮内边距 */
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 13px; /* 与签到入口一致，略微缩小字体 */
+            font-weight: 600;
+            transition: all 0.2s ease; /* 增加过渡效果，与其他页面一致 */
+            white-space: nowrap; /* 按钮文字不换行 */
+        }
+        .nav-btn.active {
+            background-color: #4caf50;
+            color: #fff;
+        }
+        .nav-btn.inactive {
+            background-color: #f5f5f5;
+            color: #4a5568;
+        }
+        .nav-btn.inactive:hover {
+            background-color: #eee; /* 增加 hover 效果，与其他页面一致 */
+        }
+        /* 页面标题 */
+        .page-title {
+            font-size: 18px; /* 与签到入口的 h2 一致，统一标题大小 */
+            color: #2d3748;
+            margin: 0 0 10px 0; /* 取消顶部间距，与签到入口布局一致 */
+            font-weight: 600;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #eee; /* 增加下划线，与签到入口标题风格一致 */
+        }
+        /* 注意提示 */
+        .note {
+            background-color: #fff8e1;
+            padding: 10px; /* 与签到入口一致，调整内边距 */
+            border-left: 4px solid #ffb300;
+            border-radius: 0 4px 4px 0;
+            margin: 10px 0 20px 0; /* 调整间距，与其他提示框一致 */
+            font-size: 14px;
+            line-height: 1.6;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05); /* 增加轻微阴影，提升质感 */
+        }
+        .note strong {
+            color: #e65100;
+        }
+        /* 签到结果表格 */
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .result-table th, .result-table td {
+            border: 1px solid #f0f0f0;
+            padding: 12px 8px;
+            text-align: center;
+            font-size: 14px;
+        }
+        .result-table th {
+            background-color: #f5f5f5;
+            font-weight: 600;
+            color: #2d3748;
+        }
+        .result-img {
+            width: 70px;
+            height: auto;
+            margin: 8px 0;
+            border: 1px solid #eee;
+            border-radius: 6px; /* 与签到入口一致，增大圆角 */
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        .result-img:hover {
+            transform: scale(1.02); /* 与签到入口一致，统一悬停放大比例 */
+        }
+        /* 图片预览弹窗样式（与签到入口完全一致） */
+        .image-preview {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 9999;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .preview-content {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 8px;
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
+        }
+        .close-preview {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: #fff;
+            font-size: 30px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            transition: color 0.2s ease;
+        }
+        .close-preview:hover {
+            color: #ff4444;
+        }
+        /* 适配移动端（与签到入口一致，优化小屏体验） */
+        @media (max-width: 375px) {
+            body {
+                padding-top: 75px; /* 小屏略微调整顶部内边距 */
+            }
+            .nav-btn {
+                padding: 7px 10px;
+                font-size: 12px;
+            }
+            .page-title {
+                font-size: 17px;
+            }
+            .result-table {
+                font-size: 12px;
+            }
+            .result-img {
+                width: 50px; /* 小屏缩小图片尺寸，避免挤压 */
+            }
+            .preview-content {
+                max-width: 95%;
+                max-height: 85%;
+            }
+        }
+        /* 适配中等屏幕，优化表格显示 */
+        @media (max-width: 768px) {
+            .result-table {
+                font-size: 12px;
+            }
+            .result-img {
+                width: 60px;
+            }
+            .preview-content {
+                max-width: 95%;
+                max-height: 85%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航栏（统一顺序：签到入口→签到类型→签到结果→关于会员） -->
+    <div class="top-nav">
+        <a href="index.html" class="nav-btn inactive">签到入口</a>
+        <a href="签到类型.html" class="nav-btn inactive">签到类型</a>
+        <a href="签到结果.html" class="nav-btn active">签到结果</a>
+        <a href="关于会员.html" class="nav-btn inactive">关于会员</a>
+    </div>
+
+    <!-- 页面标题 -->
+    <div class="page-title">签到结果</div>
+
+    <!-- 注意提示 -->
+    <div class="note">
+        <strong>注意</strong><br>
+        部分同学分不清【1.未签】和【2.缺勤】，缺勤是你老师手动设置的！
+    </div>
+
+    <!-- 签到结果表格 -->
+    <table class="result-table">
+        <tr>
+            <th>1. 未签</th>
+            <th>2. 缺勤</th>
+            <th>3. 教师代签</th>
+            <th>4. 虚拟定位</th>
+            <th>5. 已签</th>
+        </tr>
+        <tr>
+            <td>
+                <div>未签到显示</div>
+                <img src="images/微信图片_20251201163049_233_8.png" alt="未签示例" class="result-img" onclick="openPreview(this)">
+            </td>
+            <td>
+                <div>教师手动设置</div>
+                <img src="images/微信图片_20251201163050_234_8.png" alt="缺勤示例" class="result-img" onclick="openPreview(this)">
+            </td>
+            <td>
+                <div>教师后台操作</div>
+                <img src="images/微信图片_20251201163052_235_8.png" alt="教师代签示例" class="result-img" onclick="openPreview(this)">
+            </td>
+            <td>
+                <div>v3小程序自动绕过</div>
+                <img src="images/微信图片_20251201163053_236_8.png" alt="虚拟定位示例" class="result-img" onclick="openPreview(this)">
+            </td>
+            <td>
+                <div>签到成功显示</div>
+                <img src="images/微信图片_20251201163054_237_8.png" alt="已签示例" class="result-img" onclick="openPreview(this)">
+            </td>
+        </tr>
+        <tr>
+            <th>6. 事假</th>
+            <th>7. 病假</th>
+            <th>8. 公假</th>
+            <th>9. 迟到</th>
+            <th>10. 早退</th>
+        </tr>
+        <tr>
+            <td>
+                <div>教师手动标记</div>
+                <img src="images/微信图片_20251201163055_238_8.png" alt="事假示例" class="result-img" onclick="openPreview(this)">
+            </td>
+            <td>
+                <div>教师手动标记</div>
+                <img src="images/微信图片_20251201163056_239_8.png" alt="病假示例" class="result-img" onclick="openPreview(this)">
+            </td>
+            <td>
+                <div>教师手动标记</div>
+                <img src="images/微信图片_20251201163057_240_8.png" alt="公假示例" class="result-img" onclick="openPreview(this)">
+            </td>
+            <td>
+                <div>签到超时显示</div>
+                <img src="images/微信图片_20251201163059_241_8.png" alt="迟到示例" class="result-img" onclick="openPreview(this)">
+            </td>
+            <td>
+                <div>提前结束显示</div>
+                <img src="images/微信图片_20251201163100_242_8.png" alt="早退示例" class="result-img" onclick="openPreview(this)">
+            </td>
+        </tr>
+    </table>
+
+    <!-- 图片预览弹窗 -->
+    <div class="image-preview" id="previewModal" onclick="closePreview()">
+        <button class="close-preview">&times;</button>
+        <img src="" alt="预览图" class="preview-content" id="previewImg">
+    </div>
+
+    <script>
+        // 图片预览功能（与签到入口完全一致，统一交互逻辑）
+        const previewModal = document.getElementById('previewModal');
+        const previewImg = document.getElementById('previewImg');
+
+        function openPreview(imgElement) {
+            previewImg.src = imgElement.src;
+            previewImg.alt = imgElement.alt;
+            previewModal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closePreview() {
+            previewModal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        document.querySelector('.close-preview').addEventListener('click', function(e) {
+            e.stopPropagation();
+            closePreview();
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && previewModal.style.display === 'flex') {
+                closePreview();
+            }
+        });
+    </script>
+</body>
+</html>

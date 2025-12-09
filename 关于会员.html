@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>关于会员</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft Yahei", sans-serif;
+        }
+        body {
+            background-color: #f5f5f5; /* 与签到入口一致，统一背景色 */
+            padding: 15px;
+            color: #333;
+            padding-top: 80px; /* 与签到入口一致，增至80px容纳导航栏 */
+        }
+        /* 顶部导航栏（统一顺序：签到入口→签到类型→签到结果→关于会员） */
+        .top-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 12px 15px;
+            z-index: 999;
+            display: flex;
+            gap: 8px; /* 与签到入口一致，减小按钮间距 */
+            flex-wrap: nowrap; /* 禁止换行 */
+            overflow-x: auto; /* 移动端横向滚动 */
+            -webkit-overflow-scrolling: touch; /* 平滑滚动 */
+        }
+        /* 隐藏导航栏滚动条 */
+        .top-nav::-webkit-scrollbar {
+            display: none;
+        }
+        .nav-btn {
+            padding: 8px 12px; /* 与签到入口一致，减小按钮内边距 */
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 13px; /* 与签到入口一致，略微缩小字体 */
+            font-weight: 600;
+            transition: all 0.2s ease; /* 增加过渡效果，与其他页面一致 */
+            white-space: nowrap; /* 按钮文字不换行 */
+        }
+        .nav-btn.active {
+            background-color: #4caf50;
+            color: #fff;
+        }
+        .nav-btn.inactive {
+            background-color: #f5f5f5;
+            color: #4a5568;
+        }
+        .nav-btn.inactive:hover {
+            background-color: #eee; /* 增加 hover 效果，与其他页面一致 */
+        }
+
+        h1 {
+            font-size: 18px; /* 与签到入口标题一致，统一大小 */
+            margin: 0 0 10px 0; /* 取消顶部间距，与签到入口布局一致 */
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #2d3748;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #eee; /* 增加下划线，与其他页面标题风格一致 */
+        }
+        h1 .icon {
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, #4caf50 0%, #81c784 100%);
+            color: #fff;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .note {
+            background-color: #fff8e1;
+            padding: 10px; /* 与签到入口一致，调整内边距 */
+            border-left: 4px solid #ffb300;
+            border-radius: 0 4px 4px 0;
+            margin: 10px 0 20px 0; /* 调整间距，与其他提示框一致 */
+            font-size: 14px;
+            line-height: 1.6;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .note strong {
+            color: #e65100;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        .section h2 {
+            font-size: 18px;
+            margin-bottom: 12px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #eee; /* 统一下划线样式，与其他页面一致 */
+            color: #2d3748;
+        }
+        .section p {
+            line-height: 1.8;
+            margin-bottom: 12px;
+            font-size: 15px;
+            color: #4a5568;
+        }
+        /* 横向分栏容器 */
+        .comparison-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin: 15px 0;
+        }
+        /* 单个用户类型卡片 */
+        .user-card {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08); /* 与其他页面卡片阴影一致 */
+            overflow: hidden;
+        }
+        .card-header {
+            padding: 12px 15px;
+            font-weight: 600;
+            color: #fff;
+            font-size: 16px;
+        }
+        .normal-header {
+            background: linear-gradient(135deg, #4299e1 0%, #38b2ac 100%);
+        }
+        .vip-header {
+            background: linear-gradient(135deg, #ed8936 0%, #e53e3e 100%);
+        }
+        .card-body {
+            padding: 15px;
+        }
+        .feature-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .feature-item:last-child {
+            border-bottom: none;
+        }
+        .feature-name {
+            font-size: 14px;
+            color: #4a5568;
+        }
+        .feature-status {
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .check {
+            color: #48bb78;
+        }
+        .cross {
+            color: #e53e3e;
+        }
+        .highlight {
+            color: #fff;
+            background-color: #ed8936;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        /* 打赏区域样式（保持原有自适应逻辑，优化细节） */
+        .reward-area {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #fdf2f8;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08); /* 增加阴影，与其他卡片一致 */
+        }
+        .reward-area img {
+            max-width: 100%;
+            height: auto;
+            max-height: 200px;
+            border: 1px solid #f0e6ec;
+            border-radius: 6px; /* 与其他图片圆角一致 */
+            margin-bottom: 0;
+            transition: transform 0.2s ease; /* 增加悬停效果 */
+        }
+        .reward-area img:hover {
+            transform: scale(1.02); /* 悬停轻微放大，与其他图片交互一致 */
+        }
+        .reward-area p {
+            font-size: 13px;
+            color: #718096;
+            margin: 0;
+            text-align: center;
+            white-space: nowrap;
+        }
+        /* 适配移动端（与签到入口一致，优化小屏体验） */
+        @media (max-width: 375px) {
+            body {
+                padding-top: 75px; /* 小屏略微调整顶部内边距 */
+            }
+            .nav-btn {
+                padding: 7px 10px;
+                font-size: 12px;
+            }
+            h1 {
+                font-size: 17px;
+            }
+            .section h2 {
+                font-size: 17px;
+            }
+            .reward-area {
+                gap: 15px; /* 小屏减小间距 */
+            }
+            .reward-area img {
+                max-height: 180px; /* 小屏缩小图片最大高度 */
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航栏（统一顺序：签到入口→签到类型→签到结果→关于会员） -->
+    <div class="top-nav">
+        <a href="index.html" class="nav-btn inactive">签到入口</a>
+        <a href="签到类型.html" class="nav-btn inactive">签到类型</a>
+        <a href="签到结果.html" class="nav-btn inactive">签到结果</a>
+        <a href="关于会员.html" class="nav-btn active">关于会员</a>
+    </div>
+
+    <h1>
+        <span class="icon">🎓</span> 关于会员
+    </h1>
+
+    <div class="note">
+        <strong>重要提醒</strong><br>
+        小程序暂无付费渠道，只能通过激励广告获得会员，任何以“付费开通会员”为由的收费都是骗子，谨防上当！
+    </div>
+
+    <div class="section">
+        <h2>会员功能对比</h2>
+        <p>即使是普通用户，也能完成所有类型的签到任务。</p>
+        <p>会员用户可享受更便捷的签到体验，同时也是对开发者的支持～</p>
+
+        <!-- 横向分栏：普通用户 + 会员用户 独立卡片 -->
+        <div class="comparison-container">
+            <!-- 普通用户卡片 -->
+            <div class="user-card">
+                <div class="card-header normal-header">
+                    普通用户（免费）
+                </div>
+                <div class="card-body">
+                    <div class="feature-item">
+                        <span class="feature-name">普通签到</span>
+                        <span class="feature-status check">✅ 支持</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-name">拍照签到</span>
+                        <span class="feature-status check">✅ 自行上传图片</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-name">手势签到</span>
+                        <span class="feature-status check">✅ 免手势直签</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-name">签到码（数字）签到</span>
+                        <span class="feature-status check">✅ 免签到码直签</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-name">二维码签到</span>
+                        <span class="feature-status check">✅ 需扫码签到</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-name">位置签到</span>
+                        <span class="feature-status check">✅ 手动地图选点</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-name">查看已签到人数</span>
+                        <span class="feature-status cross">❌ 不支持</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-name">多账户签到</span>
+                        <span class="feature-status cross">❌ 逐个切换账户</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 会员用户卡片 -->
+            <div class="user-card">
+                <div class="card-header vip-header">
+                    会员用户（免费，看广告获取）
+                </div>
+                <div class="card-body">
+                    <div class="feature-item">
+                        <span class="feature-name">普通签到</span>
+                        <span class="feature-status check">✅ 支持</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-name">拍照签到</span>
+                        <span class="feature-status highlight">🎉 借用同学图片</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-name">手势签到</span>
+                        <span class="feature-status check">✅ 自动获取手势</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-name">签到码（数字）签到</span>
+                        <span class="feature-status check">✅ 自动获取签到码</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-name">二维码签到</span>
+                        <span class="feature-status check">✅ 需扫码签到</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-name">位置签到</span>
+                        <span class="feature-status highlight">🎉 自动预测教师位置</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-name">查看已签到人数</span>
+                        <span class="feature-status check">✅ 支持</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-name">多账户签到</span>
+                        <span class="feature-status highlight">🎉 一键批量签到</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>如何获取会员？</h2>
+        <p>目前仅支持通过观看激励广告获取会员时长，暂不支持直接购买。</p>
+        <p>每观看1条广告可获得对应会员时长，具体以小程序内显示为准。</p>
+    </div>
+
+    <div class="section">
+        <h2>打赏作者</h2>
+        <p>如果你对作者的使用指南感到满意，不妨请作者喝杯咖啡～你的支持是我们持续更新的动力！</p>
+        <!-- 打赏区域 -->
+        <div class="reward-area">
+            <img src="images/7052cb55b37264c900f6777617152600.png" alt="打赏码">
+            <p>“您的支持，是我们更新的动力～”</p>
+        </div>
+    </div>
+</body>
+</html>

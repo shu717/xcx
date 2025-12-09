@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>签到类型</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft Yahei", sans-serif;
+        }
+        body {
+            background-color: #f5f5f5;
+            padding: 15px;
+            color: #333;
+            padding-top: 80px; /* 与签到入口一致，增至80px容纳导航栏 */
+        }
+        /* 顶部导航栏（统一顺序：签到入口→签到类型→签到结果→关于会员） */
+        .top-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 12px 15px;
+            z-index: 999;
+            display: flex;
+            gap: 8px; /* 与签到入口一致，减小按钮间距 */
+            flex-wrap: nowrap; /* 禁止换行 */
+            overflow-x: auto; /* 移动端横向滚动 */
+            -webkit-overflow-scrolling: touch; /* 平滑滚动 */
+        }
+        /* 隐藏导航栏滚动条 */
+        .top-nav::-webkit-scrollbar {
+            display: none;
+        }
+        .nav-btn {
+            padding: 8px 12px; /* 与签到入口一致，减小按钮内边距 */
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 13px; /* 与签到入口一致，略微缩小字体 */
+            font-weight: 600;
+            transition: all 0.2s ease;
+            white-space: nowrap; /* 按钮文字不换行 */
+        }
+        .nav-btn.active {
+            background-color: #4caf50;
+            color: #fff;
+        }
+        .nav-btn.inactive {
+            background-color: #f5f5f5;
+            color: #4a5568;
+        }
+        .nav-btn.inactive:hover {
+            background-color: #eee;
+        }
+
+        .section {
+            margin-bottom: 25px;
+            /* 与签到入口一致，取消顶部间距 */
+        }
+        .section h2 {
+            font-size: 18px;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #eee;
+        }
+        .section p {
+            line-height: 1.8;
+            margin-bottom: 10px;
+            font-size: 15px;
+        }
+        .icon-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .icon-item {
+            width: 100%;
+            border: 1px solid #eee;
+            border-radius: 8px; /* 与签到入口一致，增大圆角 */
+            overflow: hidden;
+            background-color: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08); /* 与签到入口一致，添加阴影 */
+        }
+        .icon-item img {
+            width: 100%;
+            height: auto;
+            display: block;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        .icon-item img:hover {
+            transform: scale(1.02); /* 与签到入口一致，悬停放大比例 */
+        }
+        .note {
+            background-color: #fff8e1;
+            padding: 10px;
+            border-left: 4px solid #ffb300;
+            border-radius: 0 4px 4px 0;
+            margin: 10px 0;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .note strong {
+            color: #e65100; /* 增强强调色，与其他页面提示统一 */
+        }
+        .tip {
+            background-color: #e8f5e9;
+            padding: 10px;
+            border-left: 4px solid #4caf50;
+            border-radius: 0 4px 4px 0;
+            margin: 10px 0;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .tip h3 {
+            font-size: 15px;
+            margin-bottom: 5px;
+            color: #2e7d32;
+        }
+        .link-example {
+            background-color: #fafafa;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #555;
+            margin: 8px 0;
+            word-break: break-all;
+            border: 1px solid #eee; /* 增加边框，提升辨识度 */
+        }
+        .ps {
+            font-size: 14px;
+            color: #888;
+            font-style: italic;
+        }
+        /* 图片预览弹窗（与签到入口完全一致） */
+        .image-preview {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 9999;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .preview-content {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 8px;
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
+        }
+        .close-preview {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: #fff;
+            font-size: 30px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            transition: color 0.2s ease;
+        }
+        .close-preview:hover {
+            color: #ff4444;
+        }
+        /* 适配小屏手机（与签到入口一致） */
+        @media (max-width: 375px) {
+            body {
+                padding-top: 75px; /* 小屏略微调整 */
+            }
+            .nav-btn {
+                padding: 7px 10px;
+                font-size: 12px;
+            }
+            .section h2 {
+                font-size: 17px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航栏（统一顺序，与签到入口一致） -->
+    <div class="top-nav">
+        <a href="index.html" class="nav-btn inactive">签到入口</a>
+        <a href="签到类型.html" class="nav-btn active">签到类型</a>
+        <a href="签到结果.html" class="nav-btn inactive">签到结果</a>
+        <a href="关于会员.html" class="nav-btn inactive">关于会员</a>
+    </div>
+
+    <div class="section">
+        <h2>课程、班级、群聊的区别</h2>
+        <p>打开学习通App的聊天页，课程是绿色图标，班级是黄色图标，群聊是学生头像拼接。</p>
+        <div class="icon-group">
+            <div class="icon-item">
+                <img src="images/微信图片_20251201163048_232_8.jpg" alt="课程/班级/群聊图标示例" onclick="openPreview(this)">
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>1. 课程、班级签到</h2>
+        <p>直接在【课程学习】和【扫码学习】使用。</p>
+    </div>
+
+    <div class="section">
+        <h2>2. 群聊签到</h2>
+        <p>只能在【实时学习】里使用，且要在打开官方App前使用。很少有用户是这种签到。</p>
+        <div class="note">
+            <strong>注意</strong><br>
+            如果你已经打开官方App了，小程序就收不到了。这种签到只能被收到一次。
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>签到类型</h2>
+        <h3 style="font-size: 16px; margin: 10px 0;">1. 二维码签到</h3>
+        <div class="tip">
+            <h3>提示</h3>
+            <p>过期二维码漏洞已在2023年4月8号被学习通官方修复！<br>
+            截至到目前，二维码签到修复已经快两三年了，依旧没人能实现破解过期二维码签到，更别提免码直签了。<br>
+            所谓的免码直签不过是“群聊签到”里的旧版二维码签到，几乎没有老师使用。</p>
+        </div>
+        <div class="tip">
+            <h3>提示</h3>
+            <p>二维码解码后是个链接，例如：</p>
+            <div class="link-example">https://mobilelearn.chaoxing.com/widget/sign/e?id=80001231452&enc=FACD34DBC291EE176</div>
+            <p>包含id和enc参数，enc每10秒无规律变化一次。目前无人发现规律！</p>
+        </div>
+        <p>点击扫码学习就可以扫码签到了，如果教师设置了位置限制，可以地图选点签到。</p>
+        <p>已自动绕过“同一设备不能重复签到”的限制。</p>
+        <p class="ps">PS：点击“请人帮忙”可以快捷把账号密码分享给同学帮你签哦~</p>
+    </div>
+
+    <div class="section">
+        <h3 style="font-size: 16px; margin: 10px 0;">2. 位置签到</h3>
+        <div class="tip">
+            <h3>提示</h3>
+            <p>使用该方式会触发“使用作弊工具”提示吗？<br>
+            答：不会。开发者早已注意到这种情况，已有应对策略，教师端仅显示正常签到记录。</p>
+        </div>
+        <p>地图选点，可以自行修改签到位置的文本。<br>
+        会员用户可获取教师设置的位置。<br>
+        只要坐标对了，你填“学园都市”都能签上。</p>
+    </div>
+
+    <div class="section">
+        <h3 style="font-size: 16px; margin: 10px 0;">3. 手势签到/签到码签到</h3>
+        <div class="tip">
+            <h3>提示</h3>
+            <p>签到码是4-8位的数字，不是二维码！</p>
+        </div>
+        <p>点自动获取，就能获取到签到码、手势图。<br>
+        有手就行，不想多讲了。</p>
+    </div>
+
+    <div class="section">
+        <h3 style="font-size: 16px; margin: 10px 0;">4. 图片签到</h3>
+        <div class="tip">
+            <h3>提示</h3>
+            <p>会员用户可一键借用同学照片签到</p>
+        </div>
+        <p>用户可上传任意图片进行签到。<br>
+        不上传图片的话，也会签到成功，但是图片缺失。</p>
+    </div>
+
+    <!-- 图片预览弹窗 -->
+    <div class="image-preview" id="previewModal" onclick="closePreview()">
+        <button class="close-preview">&times;</button>
+        <img src="" alt="预览图" class="preview-content" id="previewImg">
+    </div>
+
+    <script>
+        // 图片预览功能（与签到入口完全一致）
+        const previewModal = document.getElementById('previewModal');
+        const previewImg = document.getElementById('previewImg');
+
+        function openPreview(imgElement) {
+            previewImg.src = imgElement.src;
+            previewImg.alt = imgElement.alt;
+            previewModal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closePreview() {
+            previewModal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        document.querySelector('.close-preview').addEventListener('click', function(e) {
+            e.stopPropagation();
+            closePreview();
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && previewModal.style.display === 'flex') {
+                closePreview();
+            }
+        });
+    </script>
+</body>
+</html>
